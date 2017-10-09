@@ -1,134 +1,130 @@
 <?php
 
 class cx_validate{
-
-    public function _alt($alts, $a){
-        return (!empty($alts[$a]))? trim($alts[$a]): $a;        
+    
+    public $request = array();
+    public $rules = array();
+    public $cluster = array();
+    
+    //Check to see if the field is a required
+    public function is_required( $label ){
+        $cluster = $this->cluster;
+        if( !empty($cluster[$label.'.'.'required']) ){
+            return true;
+        }
     }
 
-    public function required( $label, $value){
-        if( empty($value) ){
+    //This rule fires off to check if the field contains any value
+    public function required( $label, $data ){
+        if( empty($data['value']) ){
             return 'The ' . $label . ' field is required.';
         }
     }
 
-    public function min( $label, $value, $condition ){
-        if( strlen($value) < $condition ){
-            return 'The ' . $label . ' field should be minimum ' . $condition .' characters.';
+     //This rule fires off to check if the field matches the min condition
+     public function min( $label, $data ){
+        if( strlen($data['value']) < $data['match'] ){
+            return 'The ' . $label . ' field should be minimum ' . $data['match'] .' characters.';
         }
     }
 
-    public function max( $label, $value, $condition ){
-        if( strlen($value) > $condition ){
-            return 'The ' . $label . ' field should have maximum ' . $condition .' characters.';
+     //This rule fires off to check if the field matches the max condition
+     public function max( $label, $data ){
+        if( strlen($data['value']) > $data['match'] ){
+            return 'The ' . $label . ' field should have maximum ' . $data['match'] .' characters.';
         }
     }
 
-    public function email( $label, $value ){
-        if( !filter_var($value, FILTER_VALIDATE_EMAIL) ){
+     //This rule fires off to check if the field is a email address format
+     public function email( $label, $data ){
+        if( !filter_var($data['value'], FILTER_VALIDATE_EMAIL) ){
             return 'The ' . $label . ' field contains an invalid email address.';
         }
     }
 
-    public function url( $label, $value ){
-        if( !filter_var($value, FILTER_VALIDATE_URL) ){
+     //This rule fires off to check if the field contains a valid url format
+     public function url( $label, $data ){
+        if( !filter_var($data['value'], FILTER_VALIDATE_URL) ){
             return 'The ' . $label . ' field contains an invalid url format.';
         }
     }
 
-    public function disallow_links( $label, $value ){
-        if( preg_match("/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $value)){
+     //This rule fires off to check if the field contains any type of urls or email adress
+     public function disallow_links( $label, $data ){
+        if( preg_match("/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $data['value'])){
             return 'The ' . $label . ' field does not allow links.';
-        } else if( preg_match("/[a-z0-9_\-\+]+@[a-z0-9\-]+\.([a-z]{2,3})(?:\.[a-z]{2})?/i", $value) ){
+        } else if( preg_match("/[a-z0-9_\-\+]+@[a-z0-9\-]+\.([a-z]{2,3})(?:\.[a-z]{2})?/i", $data['value']) ){
             return 'The ' . $label . ' field does not allow email address.';
         }
     }
 
-    public function name( $label, $value ){
-        if( !preg_match('/^([a-zA-Z]+[\'-]?[a-zA-Z]+[ ]?)+$/', $value) ){
+     //This custom rule fires off to check if the field matches the conditions from the pattern
+     public function name( $label, $data ){
+        if( !preg_match('/^([a-zA-Z]+[\'-]?[a-zA-Z]+[ ]?)+$/', $data['value']) ){
             return 'The ' . $label . ' field should only contain valid alphabetical characters.';
         }
     }
 
-    public function phone( $label, $value ){
-        $value = explode('-', $value);
-        $country = $value[0];
-        if( count($value) == 2 ){
-            $phone = $value[1];
-        } else if( count($value) == 3 ){
-            $area = $value[1];
-            $phone = $value[2];
-        }
-        if( strlen($country) < 1 or strlen($country) > 4 ){
-            return 'The ' . $label . ' field contains invalid country code.';
-        } else if( !preg_match("/^[0-9]+$/i", $country) ){
-            return 'The ' . $label . ' country code field can only have digits.';
-        } else if( count($value) == 3 and !preg_match("/^[0-9]+$/i", $area) ){
-            return 'The ' . $label . ' area code field can only have digits.';
-        } else if( !preg_match("/^[0-9]+$/i", $phone) ){
-            return 'The ' . $label . ' field can only have digits.';
+     //This custom rule fires off to check if the field matches the conditions from the pattern
+     public function phone( $label, $data ){
+        if( !preg_match("/^[0-9-+() ]+$/i", $data['value']) ){
+            return 'The ' . $label . ' field contains invalid phone number.';
         }
     }
-    
-    
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function validate($request, $rules, $alts = array() ){
-        $v = $this;
-        $err = array();
-        if( count($rules ) ){
-            foreach($rules as $a => $b){
-                $alt = $v->_alt($alts, $a);
-                $c = explode('|', $b); $c = array_filter($c);
-                $m = count($c); $n = 1; $o = array();
-                $r = (!empty($request[$a]))?$request[$a]:'';
-                foreach($c as $d => $e ){
-                    if( empty($err[$a]) ){
-                        if( $e == 'required' and empty($r) ){
-                            if( !empty($v->required($alt, $r)) ){
-                                $err[$a] = $v->required($alt, $r);
-                            }
-                        } else if( strpos($e, ':') === false ){
-                            if( !empty($v->$e($alt, $r)) ){
-                                $err[$a] = $v->$e($alt, $r);
-                            }
-                        } else {
-                            $n++;
-                            list($h, $k) = explode(':', $e);
-                            $o[$h] = $k;
-                            if( $m == $n ){
-                                foreach($o as $p => $q ){
-                                    if( $p == 'type' ){
-                                        if( !empty($v->$q($alt, $r)) ){
-                                            $err[$a] = $v->$q($alt, $r); break;
-                                        }
-                                    } else {
-                                        if( !empty($v->$p($alt, $r, $q)) ){
-                                            $err[$a] = $v->$p($alt, $r, $q); break;
-                                        }
-                                    }
-                                }
-                            } else {
-                                $o[$h] = $k;
-                            }
-                        }
+    //Cluster all the request and rules 
+    public function cluster(){
+        $request = $this->request;
+        $rules = $this->rules;     
+        foreach($rules as $label => $rule ){
+            $label = preg_replace("/[^A-Za-z0-9-_?!]/","",$label);
+            $value = trim($request[$label]);
+            $conditions = explode('|', $rule);
+            foreach( $conditions as $method ){
+                if( strpos($method, ':') === false ){
+                    $this->cluster[$label . '.' . $method] = ['value' => $value];
+                } else {
+                    $conditions = explode(':', $method);
+                    $method = $conditions[0];
+                    $match = $conditions[1];
+                    if( $this->is_required( $label ) or !empty($value) ){
+                        $this->cluster[$label . '.' . $method] = ['value' => $value, 'match' => $match];                        
                     }
                 }
-            }
-            echo json_encode( $err );
+            } 
         }
+    }
+
+    //This is where all the method fires off and errors are being handle dynamically from the rules method
+    public function errors(){
+        $cluster = $this->cluster;
+        if( count($cluster) ){
+            $errors = array();
+            foreach( $cluster as $key => $data ){
+                $key = explode('.', $key);
+                $label = $key[0];
+                $method = $key[1];
+                if( empty($errors[$label]) ){
+                    if( empty($this->is_required( $label )) and empty(trim($data['value'])) ){
+                      continue;
+                    } else {
+                        $message = $this->$method( $label, $data );                        
+                    }
+                    if( !empty( $message ) ){
+                        $errors[$label] = $message;
+                    }             
+                }
+            }
+        }
+        return json_encode( $errors );
+    }
+
+    //Initiates the request and rule based validation
+    public function validate($request, $rules, $alts = array() ){
+        $this->request = $request;
+        $this->rules = $rules;
+        $this->cluster();
+        echo $this->errors( $request, $rules );
     }
 
 }
