@@ -5,73 +5,8 @@ class cx_validate{
     public $request = array();
     public $rules = array();
     public $cluster = array();
+    public $messages = array();
     
-    //Check to see if the field is a required
-    public function is_required( $label ){
-        $cluster = $this->cluster;
-        if( !empty($cluster[$label.'.'.'required']) ){
-            return true;
-        }
-    }
-
-    //This rule fires off to check if the field contains any value
-    public function required( $label, $data ){
-        if( empty($data['value']) ){
-            return 'The ' . $label . ' field is required.';
-        }
-    }
-
-     //This rule fires off to check if the field matches the min condition
-     public function min( $label, $data ){
-        if( strlen($data['value']) < $data['match'] ){
-            return 'The ' . $label . ' field should be minimum ' . $data['match'] .' characters.';
-        }
-    }
-
-     //This rule fires off to check if the field matches the max condition
-     public function max( $label, $data ){
-        if( strlen($data['value']) > $data['match'] ){
-            return 'The ' . $label . ' field should have maximum ' . $data['match'] .' characters.';
-        }
-    }
-
-     //This rule fires off to check if the field is a email address format
-     public function email( $label, $data ){
-        if( !filter_var($data['value'], FILTER_VALIDATE_EMAIL) ){
-            return 'The ' . $label . ' field contains an invalid email address.';
-        }
-    }
-
-     //This rule fires off to check if the field contains a valid url format
-     public function url( $label, $data ){
-        if( !filter_var($data['value'], FILTER_VALIDATE_URL) ){
-            return 'The ' . $label . ' field contains an invalid url format.';
-        }
-    }
-
-     //This rule fires off to check if the field contains any type of urls or email adress
-     public function disallow_links( $label, $data ){
-        if( preg_match("/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $data['value'])){
-            return 'The ' . $label . ' field does not allow links.';
-        } else if( preg_match("/[a-z0-9_\-\+]+@[a-z0-9\-]+\.([a-z]{2,3})(?:\.[a-z]{2})?/i", $data['value']) ){
-            return 'The ' . $label . ' field does not allow email address.';
-        }
-    }
-
-     //This custom rule fires off to check if the field matches the conditions from the pattern
-     public function name( $label, $data ){
-        if( !preg_match('/^([a-zA-Z]+[\'-]?[a-zA-Z]+[ ]?)+$/', $data['value']) ){
-            return 'The ' . $label . ' field should only contain valid alphabetical characters.';
-        }
-    }
-
-     //This custom rule fires off to check if the field matches the conditions from the pattern
-     public function phone( $label, $data ){
-        if( !preg_match("/^[0-9-+() ]+$/i", $data['value']) ){
-            return 'The ' . $label . ' field contains invalid phone number.';
-        }
-    }
-
     //Cluster all the request and rules 
     public function cluster(){
         $request = $this->request;
@@ -125,6 +60,77 @@ class cx_validate{
         $this->rules = $rules;
         $this->cluster();
         echo $this->errors( $request, $rules );
+    }
+    
+    //Check to see if the field is a required
+    public function is_required( $label ){
+        $cluster = $this->cluster;
+        if( !empty($cluster[$label.'.'.'required']) ){
+            return true;
+        }
+    }
+
+    //This rule fires off to check if the field contains any value
+    public function required( $label, $data ){
+        if( empty($data['value']) ){
+            return 'The ' . $label . ' field is required.';
+        }
+    }
+
+     //This rule fires off to check if the field matches the min condition
+     public function min( $label, $data ){
+        if( strlen($data['value']) < $data['match'] ){
+            return 'The ' . $label . ' field should be minimum ' . $data['match'] .' characters.';
+        }
+    }
+
+     //This rule fires off to check if the field matches the max condition
+     public function max( $label, $data ){
+        if( strlen($data['value']) > $data['match'] ){
+            return 'The ' . $label . ' field should have maximum ' . $data['match'] .' characters.';
+        }
+    }
+
+     //This rule fires off to check if the field is a email address format
+     public function email( $label, $data ){
+        if( !filter_var($data['value'], FILTER_VALIDATE_EMAIL) ){
+            return 'The ' . $label . ' field contains an invalid email address.';
+        }
+    }
+
+     //This rule fires off to check if the field contains a valid url format
+     public function url( $label, $data ){
+        if( !filter_var($data['value'], FILTER_VALIDATE_URL) ){
+            return 'The ' . $label . ' field contains an invalid url format.';
+        }
+    }
+
+     //This rule fires off to check if the field contains any type of urls
+     public function disallow_links( $label, $data ){
+        if( preg_match("/(http|https|ftp|ftps)\:\/\/[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(\/\S*)?/", $data['value'])){
+            return 'The ' . $label . ' field does not allow links.';
+        }
+    }
+
+    //This rule fires off to check if the field contains any email adress
+    public function disallow_emails( $label, $data ){
+        if( preg_match("/[a-z0-9_\-\+]+@[a-z0-9\-]+\.([a-z]{2,3})(?:\.[a-z]{2})?/i", $data['value']) ){
+            return 'The ' . $label . ' field does not allow email address.';
+        }
+    }
+
+     //This custom rule fires off to check if the field matches the conditions from the pattern
+     public function name( $label, $data ){
+        if( !preg_match('/^([a-zA-Z]+[\'-]?[a-zA-Z]+[ ]?)+$/', $data['value']) ){
+            return 'The ' . $label . ' field should only contain valid alphabetical characters.';
+        }
+    }
+
+     //This custom rule fires off to check if the field matches the conditions from the pattern
+     public function phone( $label, $data ){
+        if( !preg_match("/^[0-9-+() ]+$/i", $data['value']) ){
+            return 'The ' . $label . ' field contains invalid phone number.';
+        }
     }
 
 }
